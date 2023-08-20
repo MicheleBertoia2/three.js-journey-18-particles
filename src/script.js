@@ -29,30 +29,42 @@ const texture = textureLoader.load('/textures/particles/9.png')
 //Geometry
 const particlesGeometry = new THREE.BufferGeometry()
 
-const count = 5000
+const count = 20000
 const position = new Float32Array(count * 3)
+const color = new Float32Array(count * 3)
 
 for (let i = 0; i < count * 3; i++) {
-    position[i] = (Math.random() -0.5)  
+    position[i] = (Math.random() -0.5) * 10 
+    color[i] = Math.random() 
 }
 
 particlesGeometry.setAttribute('position', new THREE.BufferAttribute(position, 3))
+particlesGeometry.setAttribute('color', new THREE.BufferAttribute(color, 3))
 
 
 //material
 const particlesMaterial = new THREE.PointsMaterial({
-    size: 0.01,
+    size: 0.1,
     sizeAttenuation: true,
-    color: '#ff88cc',
+    // color: '#ff88cc',
     transparent: true,
     alphaMap: texture,
     // alphaTest: 0.001
-    depthTest: false //problems if we add other things
+    //depthTest: false //problems if we add other things
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    vertexColors: true
 })
 
 //Points
 const particles = new THREE.Points(particlesGeometry,particlesMaterial)
 scene.add(particles)
+
+// const cube = new THREE.Mesh(
+//     new THREE.BoxGeometry(),
+//     new THREE.MeshBasicMaterial()
+// )
+// scene.add(cube)
 
 /**
  * Sizes
@@ -107,6 +119,17 @@ const clock = new THREE.Clock()
 const tick = () =>
 {
     const elapsedTime = clock.getElapsedTime()
+
+    //Update particles
+    // particles.rotation.y = elapsedTime * 0.2
+
+    //not good for performance, better use custom shaders
+    for(let i = 0; i < count; i++){
+        const i3 = i * 3
+        const x = particlesGeometry.attributes.position.array[i3]
+        particlesGeometry.attributes.position.array[i3 + 1] = Math.sin(elapsedTime + x)
+    }
+    particlesGeometry.attributes.position.needsUpdate = true
 
     // Update controls
     controls.update()
